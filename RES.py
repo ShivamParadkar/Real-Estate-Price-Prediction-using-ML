@@ -1,3 +1,12 @@
+from joblib import dump, load
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import mean_squared_error
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from pandas.plotting import scatter_matrix
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -89,8 +98,7 @@ median = housing["RM"].median()  # compute median for option 3
 # print(housing.shape)
 # print(housing.describe()) #before we started filling missing attributes
 
-from sklearn.impute import SimpleImputer
-imputer = SimpleImputer(strategy = "median")
+imputer = SimpleImputer(strategy="median")
 imputer.fit(housing)
 
 # print(imputer.statistics_)
@@ -106,7 +114,7 @@ housing_tr = pd.DataFrame(X, columns=housing.columns)
 # Primarily three types of objects
 # 1.Estimators - It estimates some parameters based on a database. Eg. Imputer
 # It has a fit method and transform data
-# Fit method - Fits the dataset and calculates internal parameters 
+# Fit method - Fits the dataset and calculates internal parameters
 
 # 2.Transformers - transform method takes input and returns output based on the learnings from fit().
 # It also has a convienince function called fit_transform() which fits and then transform.
@@ -119,15 +127,13 @@ housing_tr = pd.DataFrame(X, columns=housing.columns)
 # 1.Min-max scaling (Normalization)
 #     (value - min)/(max-min)
 #     sklearn provides a class called MinMaxScaler for this
-    
-# 2.Standardization 
+
+# 2.Standardization
 #     (value - mean)/std
 #     sklearn provides a class called Standard Scaler for this
 
 
 #----**** Creatinng a pipeline ***---#
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 my_pipeline = Pipeline([
     ('imputer', SimpleImputer(strategy="median")),
     #  ......add as many as you want in your pipeline
@@ -141,9 +147,6 @@ housing_num_tr = my_pipeline.fit_transform(housing)
 
 #-----***** Selecting a desired model for real estate space *****----#
 
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
 # model = LinearRegression()
 # model = DecisionTreeRegressor()
 model = RandomForestRegressor()
@@ -162,7 +165,6 @@ prepared_data = my_pipeline.transform(some_data)
 
 #--------****** Evaluating the model ****-----#
 
-from sklearn.metrics import mean_squared_error
 housing_predictions = model.predict(housing_num_tr)
 mse = mean_squared_error(housing_labels, housing_predictions)
 rmse = np.sqrt(mse)
@@ -172,22 +174,23 @@ rmse = np.sqrt(mse)
 
 #-----**** Using better evaluation technique cross validation ******-----#
 
-from sklearn.model_selection import cross_val_score
-scores = cross_val_score(model, housing_num_tr, housing_labels, scoring="neg_mean_squared_error", cv=10)
+scores = cross_val_score(
+    model, housing_num_tr, housing_labels, scoring="neg_mean_squared_error", cv=10)
 rmse_scores = np.sqrt(-scores)
 
 # print(rmse_scores)
+
 
 def print_scores(scores):
     print("scores: ", scores)
     print("Mean: ", scores.mean())
     print("Standard deviation: ", scores.std())
-    
+
+
 print(print_scores(rmse_scores))
 
 #-------*** Saving the Model *****----#
 
-from joblib import dump, load
 dump(model, 'RealESpace.joblib')
 
 #----*** Testing the model on test data ****----#
@@ -195,7 +198,7 @@ X_test = strat_test_set.drop("MEDV", axis=1)
 Y_test = strat_test_set["MEDV"].copy()
 X_test_prepared = my_pipeline.transform(X_test)
 final_predictions = model.predict(X_test_prepared)
-final_mse = mean_squared_error(Y_test,final_predictions)
+final_mse = mean_squared_error(Y_test, final_predictions)
 final_rmse = np.sqrt(final_mse)
 print(final_predictions, list(Y_test))
 
@@ -204,14 +207,11 @@ print(final_rmse)
 print(prepared_data[3])
 
 
-
 #-------****** MOdel usage for prediction of new values *******---------#
 
-import numpy as np
-from joblib import dump, load
 model = load('RealESpace.joblib')
 
-features = np.array([[-0.42292925, 14.4898311 , -0.57719868, -0.27288841, -0.5573845 ,
-        0.15283383, -0.52225911,  0.37882487, 8.5429938 , -0.74402708,
-        0.52982668,  0.45343469, 3.81939807],])
+features = np.array([[-0.42292925, 14.4898311, -0.57719868, -0.27288841, -0.5573845,
+                      0.15283383, -0.52225911,  0.37882487, 8.5429938, -0.74402708,
+                      0.52982668,  0.45343469, 3.81939807], ])
 print(model.predict(features))
